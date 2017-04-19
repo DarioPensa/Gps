@@ -6,13 +6,14 @@ import sys
 import os
 import pylab
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.decomposition import PCA
 from scipy import sparse
-from Clusters import Spectral
+from Clusters import Spectral,DBscan
 
 geo_dir = os.path.dirname('C:\Users\Dario\Desktop\  ')
 file=open(geo_dir+'\StintspercentageWithout.csv')
 Reader=pd.read_csv(file)
-print Reader.mean()
+#print Reader.mean()
 percentage_file=[]
 clusters=[]
 alphas=[]
@@ -22,7 +23,45 @@ bayesian_file=[]
 mileage_file=[]
 time_file=[]
 
+def PCA_analysis(percentagesalphas):
+    PCA.fit(percentagesalphas)
 
+
+def testing(clusters,alphas):
+    cluster_array=[]
+    provone=[]
+    percentualone=[]
+
+    provone.append([])
+    for cluster in clusters:
+        if cluster not in cluster_array:
+            cluster_array.append(cluster)
+    aggiunta = []
+    percentuali=[]
+    for i,valore in enumerate(cluster_array):
+        for j,c in enumerate(clusters):
+            if c==valore:
+                percentuali.append((alphas['%of_service'][j],alphas['%residential'][j],alphas['%unclassified'][j],alphas['%tertiary'][j],alphas['%secondary'][j],alphas['%primary'][j],alphas['%trunk'][j],alphas['%motorway'][j],alphas['%others'][j]))
+                aggiunta.append(alphas['alpha'][j])
+        provone.append(aggiunta)
+        percentualone.append(percentuali)
+        aggiunta = []
+        percentuali=[]
+    for i in percentualone:
+        print i
+    # Create a figure instance
+    fig = plt.figure(1, figsize=(9, 6))
+
+    # Create an axes instance
+    ax = fig.add_subplot(111)
+    # basic plot
+
+
+    # Create the boxplot
+    bp = ax.boxplot(provone)
+
+    #plt.boxplot(cluster_array)
+    plt.show()
 
 
 def percentage_and_median(cluster,alpha_file):
@@ -61,23 +100,26 @@ for i,row in enumerate(Reader['%motorway']):
 #print percentage_file
 A =  np.array(percentage_file)
 A_sparse = sparse.csr_matrix(A)
-
 similarities = cosine_similarity(A_sparse)
 #create a vector (cluster,alpha)
 cluster_labels= Spectral(similarities)
+prova=DBscan(similarities)
 #divides file in the three kind of trainer
 bayesian_file=Reader[Reader['model']=='mileage_bayesian'].reset_index()
-mileage_file=Reader[Reader['model']=='mileage']['alpha'].reset_index()
-time_file=Reader[Reader['model']=='time']['alpha'].reset_index()
+mileage_file=Reader[Reader['model']=='mileage'].reset_index()
+time_file=Reader[Reader['model']=='time'].reset_index()
 
 
 
 percentage_and_median(cluster_labels,bayesian_file['alpha'])
-plotting(cluster_labels,bayesian_file['alpha'])
+testing(cluster_labels,bayesian_file)#prova tutto il vettore non solo alpha
+#plotting(cluster_labels,bayesian_file['alpha'])
 percentage_and_median(cluster_labels,mileage_file['alpha'])
-plotting(cluster_labels,mileage_file['alpha'])
+testing(cluster_labels,mileage_file)
+#plotting(cluster_labels,mileage_file['alpha'])
 percentage_and_median(cluster_labels,time_file['alpha'])
-plotting(cluster_labels,time_file['alpha'])
+testing(cluster_labels,time_file)
+#plotting(cluster_labels,time_file['alpha'])
 
 
 
@@ -86,3 +128,4 @@ plotting(cluster_labels,time_file['alpha'])
 similarities_sparse = cosine_similarity(A_sparse,dense_output=False)
 print('pairwise sparse output:\n {}\n'.format(similarities_sparse))
 '''
+

@@ -4,7 +4,7 @@ from scipy.cluster.vq import vq, kmeans, whiten, kmeans2
 import pandas as pd
 import matplotlib.pyplot as plt
 from pylab import plot,show
-from sklearn.cluster import AffinityPropagation,SpectralClustering
+from sklearn.cluster import AffinityPropagation,SpectralClustering,DBSCAN
 from itertools import cycle
 from sklearn.preprocessing import normalize
 '''
@@ -70,3 +70,10 @@ def Spectral(cosineSimilarityMatrix):
     matrix=normalize(cosineSimilarityMatrix)
     algo=SpectralClustering(n_clusters=4,affinity='precomputed')
     return algo.fit_predict(cosineSimilarityMatrix)
+
+def DBscan(similarity_matrix):
+    DBSCAN().fit(similarity_matrix)
+    return DBSCAN().fit(similarity_matrix).labels_
+
+#def KL_divergence():
+    

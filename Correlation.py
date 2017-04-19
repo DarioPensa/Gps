@@ -42,6 +42,7 @@ plt.plot(type,speed,'ro')
 plt.show()
 #plt.plot(noFermi['Speed'],noFermi['Temperature'],'ro')
 
+
 plt.plot(type,Reader['Temperature'],'ro')
 plt.show()
 plt.close()
