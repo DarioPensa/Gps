@@ -7,6 +7,7 @@ import os
 import pylab
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import MDS
 from scipy import sparse
 from Clusters import Spectral,DBscan
@@ -16,15 +17,7 @@ geo_dir = os.path.dirname('C:\Users\Dario\Desktop\  ')
 file=open(geo_dir+'\StintspercentageWithout.csv')
 Reader=pd.read_csv(file)
 #print Reader.mean()
-percentage_file=[]
-file_for_pca=[] #it is the percentage file without 'others'
-clusters=[]
-alphas=[]
-clustering=[]
 
-bayesian_file=[]
-mileage_file=[]
-time_file=[]
 
 def box_plot_for_clusters_percentage(alphas,clusters):
     service=[]
@@ -207,22 +200,39 @@ def plotting(clusters,alphas):
     plt.margins(0.1)
     plt.show()
 
+
+def clustering(Reader):
+    percentage_file = []
+    file_for_pca = []  # it is the percentage file without 'others'
+    clusters = []
+    alphas = []
+    clustering = []
+
+    bayesian_file = []
+    mileage_file = []
+    time_file = []
 #creation of the cosin similarity matrix
-for i,row in enumerate(Reader['%motorway']):
-   # print Reader['%motorway'][i],Reader['%of_service'][i],Reader['%others'][i],Reader['%primary'][i],Reader['%residential'][i],Reader['%secondary'][i],Reader['%tertiary'][i],Reader['%trunk'][i],Reader['%unclassified'][i]
-    if i%3==0:
-        percentage_file.append([Reader['%motorway'][i],Reader['%of_service'][i],Reader['%others'][i],Reader['%primary'][i],Reader['%residential'][i],Reader['%secondary'][i],Reader['%tertiary'][i],Reader['%trunk'][i],Reader['%unclassified'][i]])
+    for i,row in enumerate(Reader['%motorway']):
+    # print Reader['%motorway'][i],Reader['%of_service'][i],Reader['%others'][i],Reader['%primary'][i],Reader['%residential'][i],Reader['%secondary'][i],Reader['%tertiary'][i],Reader['%trunk'][i],Reader['%unclassified'][i]
+        if i%3==0:
+            percentage_file.append([Reader['%motorway'][i],Reader['%of_service'][i],Reader['%others'][i],Reader['%primary'][i],Reader['%residential'][i],Reader['%secondary'][i],Reader['%tertiary'][i],Reader['%trunk'][i],Reader['%unclassified'][i]])
 
 
-#print percentage_file
-A =  np.array(percentage_file)
-A_sparse = sparse.csr_matrix(A)
-#similarities = cosine_similarity(A_sparse)
-#create a vector (cluster,alpha)
-similarities=KLmatrix(percentage_file)
-#cluster_labels= Spectral(similarities)
-print similarities
-cluster_labels=DBscan(similarities)
+    #print percentage_file
+    A =  np.array(percentage_file)
+    A_sparse = sparse.csr_matrix(A)
+    #similarities = cosine_similarity(A_sparse)
+    #create a vector (cluster,alpha)
+    similarities=KLmatrix(percentage_file)
+    #cluster_labels= Spectral(similarities)
+    print similarities
+    cluster_labels=DBscan(similarities)
+    stint_clustering=[[x]*3 for x in cluster_labels]
+    print stint_clustering
+    #da aggiungere lo stint
+    return stint_clustering
+
+'''
 #divides file in the three kind of trainer
 bayesian_file=Reader[Reader['model']=='mileage_bayesian'].reset_index()
 mileage_file=Reader[Reader['model']=='mileage'].reset_index()
@@ -234,6 +244,7 @@ box_plot_for_clusters_percentage(bayesian_file,cluster_labels)
 
 for i in percentage_file:
     file_for_pca.append((i[0],i[1],i[3],i[4],i[5],i[6],i[7],i[8]))
+file_for_pca=StandardScaler().fit_transform(file_for_pca)
 PCA_analysis(file_for_pca)
 multidimensional_scaling(file_for_pca)
 
@@ -250,9 +261,8 @@ testing(cluster_labels,time_file,'time_alpha')
 
 
 
-'''
+
 #also can output sparse matrices
 similarities_sparse = cosine_similarity(A_sparse,dense_output=False)
 print('pairwise sparse output:\n {}\n'.format(similarities_sparse))
 '''
-
