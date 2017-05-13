@@ -30,6 +30,10 @@ def box_plot_for_clusters_percentage(alphas,clusters):
     motorway=[]
     others=[]
     cluster_array = []
+    axes=[]
+
+
+
 
     if len(alphas)==len(clusters):
         print 'fino a qui tutto bene'
@@ -54,23 +58,27 @@ def box_plot_for_clusters_percentage(alphas,clusters):
                 others.append(alphas['%others'][j])
 
         percentuali.append((service,residential,unclassified,tertiary,secondary,primary,trunk,motorway,others))
-        print percentuali
-        plt.xlabel('street_types')
-        plt.ylabel('percentage')
+        #plt.xlabel('street_types')
+        #plt.ylabel('percentage')
 
-        # Create a figure instance
-        fig = plt.figure(1, figsize=(9, 6))
-
+        #plt.subplots(4, sharex=True, sharey=True)
         # Create an axes instance
-        ax = fig.add_subplot(111)
+        if len(axes)==0:
+            axes.append(plt.subplot(411))
+            axes[-1].set_ylabel('percentage')
+            axes[-1].set_xlabel('street_type')
+
+        else:
+            axes.append(plt.subplot(411+len(axes),sharex=axes[0], sharey=axes[0]))
+            axes[-1].set_ylabel('percentage')
         # basic plot
 
 
         # Create the boxplot
-        bp = ax.boxplot((service,residential,unclassified,tertiary,secondary,primary,trunk,motorway,others))
+        bp = axes[-1].boxplot((service,residential,unclassified,tertiary,secondary,primary,trunk,motorway,others))
 
         # plt.boxplot(cluster_array)
-        plt.show()
+
         #azzeramento ad ogni iterazione
         service = []
         residential = []
@@ -81,7 +89,9 @@ def box_plot_for_clusters_percentage(alphas,clusters):
         trunk = []
         motorway = []
         others = []
-
+    axes[-1].set_xlabel('street_type')
+    plt.show()
+    plt.close()
 
 def KLmatrix(percentage_file):
     for i,element in enumerate(percentage_file):
@@ -227,41 +237,39 @@ def clustering(Reader):
     #cluster_labels= Spectral(similarities)
     print similarities
     cluster_labels=DBscan(similarities)
-    stint_clustering=[[x]*3 for x in cluster_labels]
+    stint_clustering=[x for x in cluster_labels for i in range(3)]
     print stint_clustering
     #da aggiungere lo stint
+
+
+
+    #divides file in the three kind of trainer
+    bayesian_file=Reader[Reader['model']=='mileage_bayesian'].reset_index()
+    mileage_file=Reader[Reader['model']=='mileage'].reset_index()
+    time_file=Reader[Reader['model']=='time'].reset_index()
+    #boxplots of the percentage with respect to the clusters
+    box_plot_for_clusters_percentage(bayesian_file,cluster_labels)
+
+    for i in percentage_file:
+        file_for_pca.append((i[0],i[1],i[3],i[4],i[5],i[6],i[7],i[8]))
+    file_for_pca=StandardScaler().fit_transform(file_for_pca)
+    PCA_analysis(file_for_pca)
+    multidimensional_scaling(file_for_pca)
+
+
+    #percentage_and_median(cluster_labels,bayesian_file['alpha'])
+    testing(cluster_labels,bayesian_file,'bayesian_alpha')#prova tutto il vettore non solo alpha
+    #plotting(cluster_labels,bayesian_file['alpha'])
+    #percentage_and_median(cluster_labels,mileage_file['alpha'])
+    testing(cluster_labels,mileage_file,'mileage_alpha')
+    #plotting(cluster_labels,mileage_file['alpha'])
+    #percentage_and_median(cluster_labels,time_file['alpha'])
+    testing(cluster_labels,time_file,'time_alpha')
+    #  plotting(cluster_labels,time_file['alpha'])
     return stint_clustering
 
+
 '''
-#divides file in the three kind of trainer
-bayesian_file=Reader[Reader['model']=='mileage_bayesian'].reset_index()
-mileage_file=Reader[Reader['model']=='mileage'].reset_index()
-time_file=Reader[Reader['model']=='time'].reset_index()
-
-
-#boxplots of the percentage with respect to the clusters
-box_plot_for_clusters_percentage(bayesian_file,cluster_labels)
-
-for i in percentage_file:
-    file_for_pca.append((i[0],i[1],i[3],i[4],i[5],i[6],i[7],i[8]))
-file_for_pca=StandardScaler().fit_transform(file_for_pca)
-PCA_analysis(file_for_pca)
-multidimensional_scaling(file_for_pca)
-
-
-#percentage_and_median(cluster_labels,bayesian_file['alpha'])
-testing(cluster_labels,bayesian_file,'bayesian_alpha')#prova tutto il vettore non solo alpha
-#plotting(cluster_labels,bayesian_file['alpha'])
-#percentage_and_median(cluster_labels,mileage_file['alpha'])
-testing(cluster_labels,mileage_file,'mileage_alpha')
-#plotting(cluster_labels,mileage_file['alpha'])
-#percentage_and_median(cluster_labels,time_file['alpha'])
-testing(cluster_labels,time_file,'time_alpha')
-#plotting(cluster_labels,time_file['alpha'])
-
-
-
-
 #also can output sparse matrices
 similarities_sparse = cosine_similarity(A_sparse,dense_output=False)
 print('pairwise sparse output:\n {}\n'.format(similarities_sparse))
