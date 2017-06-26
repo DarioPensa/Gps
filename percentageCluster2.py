@@ -9,14 +9,47 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import MDS
+from sklearn.model_selection import KFold
 from scipy import sparse
 from Clusters import Spectral,DBscan
 from scipy.stats import entropy
+import statsmodels.api as sm
+
+
 
 geo_dir = os.path.dirname('C:\Users\Dario\Desktop\  ')
 file=open(geo_dir+'\StintspercentageWithout.csv')
 Reader=pd.read_csv(file)
 #print Reader.mean()
+
+def k_fold(X,y,splits):
+    Y_found=[]
+    kf=KFold(n_splits=splits)
+    yf=0
+    e_fold=[]
+    for train_index, test_index in kf.split(X):
+        #print("TRAIN:", train_index, "TEST:", test_index)
+        X_train, X_test = [X[i]for i in train_index.tolist()],[X[i]for i in test_index.tolist()]
+        y_train, y_test = [y[i]for i in train_index.tolist()], [y[i]for i in train_index.tolist()]
+
+        c=regression(X_train, y_train).params
+        for x in X_test:
+            for i,xi in enumerate(x):
+                yf=yf+xi*c[i]
+            Y_found.append(yf)
+            yf=0
+
+        e_fold.append(sum([(y_f - y_t)**2 for y_f, y_t in zip(Y_found, y_test)])/len(Y_found))
+
+    e_tot=sum(e_fold)/splits
+
+    return e_tot
+
+def regression(X,Y):
+    Y=sm.add_constant(Y, prepend=False)
+    model= sm.OLS(Y,X)
+    results=model.fit()
+    return results
 
 
 def box_plot_for_clusters_percentage(alphas,clusters):

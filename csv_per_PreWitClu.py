@@ -40,6 +40,7 @@ def street_type_percentage(df):
 def main():
     stints = []
     stints_dates=[]
+    test_stints=[]
     geo_dir = os.path.dirname('C:\Users\Dario\Desktop\  ')
     file=open(geo_dir+'\join.csv')
     file2=open(geo_dir+'\StintsPercentageWithout.csv')
