@@ -36,17 +36,17 @@ def k_fold(X,y,splits):
         for x in X_test:
             for i,xi in enumerate(x):
                 yf=yf+xi*c[i]
-            Y_found.append(yf)
+            Y_found.append(yf+1*c[i+1])#aggiunto 1*c[i+1] per l'intercetta
             yf=0
 
-        e_fold.append(sum([(y_f - y_t)**2 for y_f, y_t in zip(Y_found, y_test)])/len(Y_found))
+        e_fold.append(sum([((y_f - y_t)/y_f)**2 for y_f, y_t in zip(Y_found, y_test)])/len(Y_found))
 
     e_tot=sum(e_fold)/splits
 
     return e_tot
 
 def regression(X,Y):
-    Y=sm.add_constant(Y, prepend=False)
+    X=sm.add_constant(X, prepend=False)
     model= sm.OLS(Y,X)
     results=model.fit()
     return results

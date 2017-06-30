@@ -21,6 +21,7 @@ test_alphas_mileage=[]
 Clusters=[]
 Sets=[]
 Tires=[]
+street_types=['%of_service','%residential','%unclassified','%tertiary','%secondary','%primary','%trunk']
 #Ys of the linear regression
 mileage_alpha=[]
 time_alpha=[]
@@ -69,7 +70,8 @@ for st,row in enumerate(Reader2['%of_service']):
                  float(Reader2['%primary'][st])/100,
                  float(Reader2['%trunk'][st])/100,
                  float(Reader2['%motorway'][st])/100,
-                 float(Reader2['%others'][st])/100])
+                 #float(Reader2['%others'][st])/100
+                 ])
 
 X_st=[X_st[x-3] for x in range(3,len(X_st)+3,3)]
 
@@ -129,7 +131,6 @@ for i,x in enumerate(X_matrix):
     del x[-1]
 
 
-print X_matrix_mileage_bayesian
 
 results_m=pc.regression(X_matrix_mileage,Y_mileage)
 results_b=pc.regression(X_matrix_mileage_bayesian,Y_mileage_bayesian)
@@ -147,17 +148,42 @@ print a_m
 print a_b
 print a_t
 print results_m.summary()
-'''
+print results_b.summary()
+print results_t.summary()
+
 clusters_temp=[]
 alpha_temp=[0]*3
 for ts in test_stints:
+    '''
     for i,row in enumerate(Reader['Stint']):
         if row==ts:
             clusters_temp.append(Reader['Cluster'][i])
+
+
     for c in Clusters:
         alpha_temp[0] =alpha_temp[0]+clusters_temp.count(c)*a_m[c]/len(clusters_temp)
         alpha_temp[1] =alpha_temp[1]+ clusters_temp.count(c)*a_t[c]/len(clusters_temp)
         alpha_temp[2] =alpha_temp[2]+ clusters_temp.count(c)*a_b[c]/len(clusters_temp)
+    '''
+    for i,row in enumerate(Reader2['stints']):
+        if int(row.replace(']',"").replace('[',""))==ts:
+            clusters_temp.append([float(Reader2['%of_service'][st])/100,
+                 float(Reader2['%residential'][st])/100,
+                 float(Reader2['%unclassified'][st])/100,
+                 float(Reader2['%tertiary'][st])/100,
+                 float(Reader2['%secondary'][st])/100,
+                 float(Reader2['%primary'][st])/100,
+                 float(Reader2['%trunk'][st])/100,
+                 float(Reader2['%motorway'][st])/100,
+                 #float(Reader2['%others'][st])/100
+                 ])
+            for i in range(8):
+                alpha_temp[0] = alpha_temp[0] + clusters_temp[i]* a_m[i]
+                alpha_temp[1] = alpha_temp[1] + clusters_temp[i]* a_t[i]
+                alpha_temp[2] = alpha_temp[2] + clusters_temp[i]* a_b[i]
+            alpha_temp[0] = alpha_temp[0] + a_m[i+1]
+            alpha_temp[1] = alpha_temp[1] + a_t[i+1]
+            alpha_temp[2] = alpha_temp[2] + a_b[i+1]
 
     test_alphas_mileage.append(alpha_temp[0])
     test_alphas_time.append(alpha_temp[1])
@@ -168,16 +194,26 @@ for ts in test_stints:
 print len(test_stints),len([x[0] for x in Tires]),len(test_alphas_mileage)
 
 
-test={'Stint':test_stints,
-      'MileageAlpha':test_alphas_mileage,'TimeAlpha':test_alphas_time,'BayesianAlpha':test_alphas_bayesian}
-test_df=pd.DataFrame(data=test)
-test_df.to_csv(geo_dir+'\TestCresciniAlphas.csv')
-'''
+
+
 
 results_st_m=pc.regression(X_st_m,Y_mileage)
+results_st_b=pc.regression(X_st_b,Y_mileage_bayesian)
+results_st_t=pc.regression(X_st_t,Y_time)
 print results_st_m.params
+print results_st_b.params
+print results_st_t.params
 print results_st_m.summary()
+print results_st_b.summary()
+print results_st_t.summary()
+
 
 print 'k-fold cross validation mileage error: ',pc.k_fold(X_st_m,Y_mileage,9)
 print 'k-fold cross validation time error:    ',pc.k_fold(X_st_t,Y_time,9)
 print 'k-fold cross validation bayesian error:',pc.k_fold(X_st_b,Y_mileage_bayesian,9)
+
+print results_st_m.cov_params()
+test={'Stint':test_stints,
+      'MileageAlpha':test_alphas_mileage,'TimeAlpha':test_alphas_time,'BayesianAlpha':test_alphas_bayesian}
+test_df=pd.DataFrame(data=test)
+test_df.to_csv(geo_dir+'\TestCresciniAlphas.csv')
