@@ -14,6 +14,7 @@ from scipy import sparse
 from Clusters import Spectral,DBscan
 from scipy.stats import entropy
 import statsmodels.api as sm
+import operator
 
 
 
@@ -27,6 +28,8 @@ def k_fold(X,y,splits):
     kf=KFold(n_splits=splits)
     yf=0
     e_fold=[]
+    errors=[]
+    ers=[]
     for train_index, test_index in kf.split(X):
         #print("TRAIN:", train_index, "TEST:", test_index)
         X_train, X_test = [X[i]for i in train_index.tolist()],[X[i]for i in test_index.tolist()]
@@ -38,12 +41,17 @@ def k_fold(X,y,splits):
                 yf=yf+xi*c[i]
             Y_found.append(yf+1*c[i+1])#aggiunto 1*c[i+1] per l'intercetta
             yf=0
-
+        #errors=list(map(operator.sub, Y_found, y_test))
+        errors.append([((y_f - y_t)/y_f) for y_f, y_t in zip(Y_found, y_test)])
+        for e in errors:
+            ers.extend(e)
+        #ers=np.asarray(errors)
         e_fold.append(sum([((y_f - y_t)/y_f)**2 for y_f, y_t in zip(Y_found, y_test)])/len(Y_found))
 
     e_tot=sum(e_fold)/splits
-
-    return e_tot
+    print errors
+    errors_variance=np.var(ers)
+    return e_tot,errors_variance
 
 def regression(X,Y):
     X=sm.add_constant(X, prepend=False)

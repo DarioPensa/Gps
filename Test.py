@@ -12,17 +12,17 @@ with open(geo_dir+'\crescini_mile-offline__prediction_var.json') as json_file:
 with open(geo_dir+'\crescini_mile-offline__prediction_var_test.json') as json_file2:
     mileageGPS=json.load(json_file2)
 
-with open(geo_dir+'\crescini_bayesian__prediction_var.json') as json_file:
-    bayesian=json.load(json_file)
+with open(geo_dir+'\crescini_bayesian__prediction_var.json') as json_file3:
+    bayesian=json.load(json_file3)
 
-with open(geo_dir+'\crescini_bayesian__prediction_var_test.json') as json_file2:
-    bayesianGPS=json.load(json_file2)
+with open(geo_dir+'\crescini_bayesian__prediction_var_test.json') as json_file4:
+    bayesianGPS=json.load(json_file4)
 
-with open(geo_dir+'\crescini_time-offline__prediction_var.json') as json_file:
-    time=json.load(json_file)
+with open(geo_dir+'\crescini_time-offline__prediction_var.json') as json_file5:
+    time=json.load(json_file5)
 
-with open(geo_dir+'\crescini_time-offline__prediction_var_test.json') as json_file2:
-    timeGPS=json.load(json_file2)
+with open(geo_dir+'\crescini_time-offline__prediction_var_test.json') as json_file6:
+    timeGPS=json.load(json_file6)
 
 
 for i,m in enumerate(mileage):
@@ -34,8 +34,8 @@ for i,m in enumerate(bayesian):
     bayesian_delta_errors.append(math.fabs(bayesian[i]['values'][0]['prediction']['prediction']['deltamileage']-target_deltadate)-math.fabs(bayesianGPS[i]['values'][0]['prediction']['prediction']['deltamileage']-target_deltadate))
 
 for i,m in enumerate(time):
-    target_deltadate = time[i]['values'][0]['target']['target_deltamileage']
-    time_delta_errors.append(math.fabs(bayesian[i]['values'][0]['prediction']['prediction']['deltamileage']-target_deltadate)-math.fabs(bayesianGPS[i]['values'][0]['prediction']['prediction']['deltamileage']-target_deltadate))
+    target_deltadate = time[i]['values'][0]['target']['target_deltadate']
+    time_delta_errors.append(math.fabs(time[i]['values'][0]['prediction']['prediction']['deltadate']-target_deltadate)-math.fabs(timeGPS[i]['values'][0]['prediction']['prediction']['deltadate']-target_deltadate))
 
 
 

@@ -68,7 +68,7 @@ def main():
             division.append(1)
             date_divise=row
         else:
-            if np.timedelta64((np.datetime64(row) - np.datetime64(date_divise)), 'D')>=np.timedelta64(3, 'D') or Reader_sorted['Stint'][i]!=Reader_sorted['Stint'][i-1] :
+            if np.timedelta64((np.datetime64(row) - np.datetime64(date_divise)), 'D')>=np.timedelta64(1, 'D') or Reader_sorted['Stint'][i]!=Reader_sorted['Stint'][i-1] :
                 division.append(division[-1] + 1)
                 date_divise=row
 
