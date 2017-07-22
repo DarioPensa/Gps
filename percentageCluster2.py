@@ -10,6 +10,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import MDS
 from sklearn.model_selection import KFold
+from sklearn.linear_model import LinearRegression as lr
 from scipy import sparse
 from Clusters import Spectral,DBscan
 from scipy.stats import entropy
@@ -22,34 +23,61 @@ geo_dir = os.path.dirname('C:\Users\Dario\Desktop\  ')
 file=open(geo_dir+'\StintspercentageWithout.csv')
 Reader=pd.read_csv(file)
 #print Reader.mean()
+def yf_yt_plot(y_found,y_test,model,parameters):
+    fig,ax=plt.subplots()
+    ax.scatter(y_found,y_test)
+    lims = [
+        np.min([ax.get_xlim(), ax.get_ylim()])/1000,  # min of both axes
+        np.max([ax.get_xlim(), ax.get_ylim()])/1000,  # max of both axes
+    ]
 
-def k_fold(X,y,splits):
-    Y_found=[]
+    # now plot both limits against eachother
+    ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
+    ax.set_aspect('equal')
+    ax.set_xlim(lims)
+    ax.set_ylim(lims)
+
+    ax.set_xlabel('y_found')
+    ax.set_ylabel('y_test')
+    plt.savefig('C:\Users\Dario\Desktop\k_fold'+os.sep+model+os.sep+parameters)
+    plt.close('all')
+
+
+def k_fold(X,y,splits,model,parameters):
     kf=KFold(n_splits=splits)
-    yf=0
     e_fold=[]
     errors=[]
     ers=[]
+    median=np.median(y)
     for train_index, test_index in kf.split(X):
+        Y_found=[]
         #print("TRAIN:", train_index, "TEST:", test_index)
         X_train, X_test = [X[i]for i in train_index.tolist()],[X[i]for i in test_index.tolist()]
-        y_train, y_test = [y[i]for i in train_index.tolist()], [y[i]for i in train_index.tolist()]
+        y_train, y_test = [y[i]for i in train_index.tolist()], [y[i]for i in test_index.tolist()]
+
 
         c=regression(X_train, y_train).params
-        for x in X_test:
-            for i,xi in enumerate(x):
-                yf=yf+xi*c[i]
-            Y_found.append(yf+1*c[i+1])#aggiunto 1*c[i+1] per l'intercetta
+        for j,t in enumerate(X_test):
             yf=0
+            for i,xi in enumerate(t):
+                yf=yf+xi*c[i]
+                print c
+                print i,xi
+                print y_test[j]
+            Y_found.append(yf+1*c[i+1])#aggiunto 1*c[i+1] per l'intercetta
+
         #errors=list(map(operator.sub, Y_found, y_test))
         errors.append([((y_f - y_t)/y_f) for y_f, y_t in zip(Y_found, y_test)])
         for e in errors:
             ers.extend(e)
         #ers=np.asarray(errors)
-        e_fold.append(sum([((y_f - y_t)/y_f)**2 for y_f, y_t in zip(Y_found, y_test)])/len(Y_found))
+        e_fold.append(np.sqrt(sum([((y_f - y_t))**2 for y_f, y_t in zip(Y_found, y_test)])/len(Y_found)))
+        #diviso la mediana
+        e_fold_m=[x / math.fabs(median) for x in e_fold]
+        yf_yt_plot(np.array(Y_found),np.array(y_test),model,parameters)
 
-    e_tot=sum(e_fold)/splits
-    print errors
+
+    e_tot=sum(e_fold_m)/splits
     errors_variance=np.var(ers)
     return e_tot,errors_variance
 

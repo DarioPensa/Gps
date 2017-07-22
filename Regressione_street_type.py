@@ -5,6 +5,75 @@ import math
 import numpy as np
 from ast import literal_eval
 
+def x2calculator(x):
+    x2=[]
+    x2sub=[]
+    for xi in x:
+        for i,xii in enumerate(xi):
+            for j,xiii in enumerate(xi):
+                if j>=i: #x1*x2==x2*x1
+                    x2sub.append(xii*xiii)
+        x2.append(x2sub)
+        x2sub=[]
+    return x2
+def model_selection(model,x,y):
+    xs_errors=[]
+    elements=[]
+    for i,element in enumerate(x[0]):
+        Xs = [[item[i]] for item in x]
+        k_e,v_e=pc.k_fold(Xs,y,5,model,str(i))
+        xs_errors.append(k_e)
+    min_e=min(xs_errors)
+    print min_e
+    #it take the index of the min error
+    elements.append(xs_errors.index(min_e))
+
+    min_sub,min_elements=subtest(x,y,elements,model)
+    if min_e<min_sub:
+        print 'errore minimo=',min_e,'parametri: ',elements
+        return min_e,elements
+    else:
+        print 'errore minimo=', min_sub, 'parametri: ', min_elements
+        return min_sub,min_elements
+
+def subtest(x_tot,y,elements,model):
+    Xs=[]
+    row=[]
+    errors=[]
+    elements_vector=[]
+    sub_elements=elements[:]
+    min_sub=10
+    min_sub=[]
+    min_e=10
+    index=-1
+    for i,xi in enumerate(x_tot[0]):
+        if i not in elements:
+            sub_elements.append(i)
+
+            for xi in x_tot:
+                for e in sub_elements:
+                    row.append(xi[e])
+                Xs.append(row)
+                row=[]
+            parameters=','.join(str(e) for e in sub_elements)
+            k_e, v_e = pc.k_fold(Xs, y, 5, model,parameters)
+            errors.append(k_e)
+            elements_vector.append(sub_elements)
+            Xs=[]
+            sub_elements=elements[:]
+            min_e=min(errors)
+            index=errors.index(min_e)
+    if len(sub_elements)!=len(x_tot[0])-1:
+        print min_e
+        min_sub,min_elements=subtest(x_tot,y,elements_vector[index],model)
+    if min_sub<min_e:
+        return min_sub,min_elements
+    else:
+        return min_e,elements_vector[index]
+
+
+
+
 geo_dir = os.path.dirname('C:\Users\Dario\Desktop\  ')
 file2=open(geo_dir+'\Clipping_Analysis_rivetti_single.csv')
 Reader2=pd.read_csv(file2)
@@ -12,6 +81,7 @@ file3=open(geo_dir+'\Clipping_Analysis_rivetti.csv')
 Reader3=pd.read_csv(file3)
 Reader3.stints=Reader3.stints.apply(literal_eval)
 
+models=['mileage','time','bayesian']
 Stints=[]
 test_stints=[]
 test_alphas_bayesian=[]
@@ -20,7 +90,7 @@ test_alphas_mileage=[]
 mileage_alpha=[]
 time_alpha=[]
 bayesian_alpha=[]
-street_types=['%of_service','%residential','%unclassified','%tertiary','%secondary','%primary','%trunk']
+street_types=['%of_service','%residential','%unclassified','%tertiary','%secondary','%primary','%trunk','%motorway']
 X_st=[]
 Y_mileage=[]
 Y_mileage_bayesian=[]
@@ -41,7 +111,7 @@ for j,r in enumerate(Reader2['stints']):
 
 for st,row in enumerate(Reader2['%of_service']):
     X_st.append([float(Reader2['%of_service'][st])/100,
-                 #float(Reader2['%residential'][st])/100,
+                 float(Reader2['%residential'][st])/100,
                  float(Reader2['%unclassified'][st])/100,
                  float(Reader2['%tertiary'][st])/100,
                  float(Reader2['%secondary'][st])/100,
@@ -75,6 +145,33 @@ for i,row in enumerate(Reader2['model']):
         else:
             Y_time.append(Reader2['alpha'][i])
 
+x2_mileage=x2calculator(X_st_m)
+print len(x2_mileage[0])
+x2_time=x2calculator(X_st_t)
+print len(x2_time[0])
+x2_bayesian=x2calculator(X_st_b)
+print len(x2_bayesian[0])
+
+
+
+for model in models:
+    print len(models)
+    print model
+    if model=='mileage':
+        print 'ok'
+        m_e,m_p=model_selection(model,X_st_m,Y_mileage)
+        m__e_2,m_p_2=model_selection(model+'x2',x2_mileage,Y_mileage)
+    elif model=='time':
+        t_e,t_p=model_selection(model, X_st_t, Y_time)
+        t_e_2, t_p_2 = model_selection(model+'x2', x2_time, Y_time)
+    elif model=='bayesian':
+        b_e,b_p=model_selection(model, X_st_b, Y_mileage_bayesian)
+        b_e_2, b_p_2 = model_selection(model+'x2', x2_bayesian, Y_mileage_bayesian)
+
+d={'min_error_x':[m_e,t_e,b_e],'parameters_x_':[m_p,t_p,b_p],'min_error_x2':[m__e_2,t_e_2,b_e_2],'parameters_x':[m_p_2,t_p_2,b_p_2]}
+df=pd.DataFrame(data=d, index=['mileage','time','bayesian'])
+df.to_csv(geo_dir+'\model_selection')
+'''
 results_st_m=pc.regression(X_st_m,Y_mileage)
 results_st_b=pc.regression(X_st_b,Y_mileage_bayesian)
 results_st_t=pc.regression(X_st_t,Y_time)
@@ -92,3 +189,9 @@ kfe_b,kfe_v_b=pc.k_fold(X_st_b,Y_mileage_bayesian,9)
 print 'k-fold cross validation mileage error: ',kfe_m,' variance: ',kfe_v_m
 print 'k-fold cross validation time error:    ',kfe_t,' variance: ',kfe_v_t
 print 'k-fold cross validation bayesian error:',kfe_b,' variance: ',kfe_v_b
+
+
+
+
+'''
+
