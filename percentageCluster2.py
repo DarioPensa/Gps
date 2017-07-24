@@ -25,17 +25,17 @@ Reader=pd.read_csv(file)
 #print Reader.mean()
 def yf_yt_plot(y_found,y_test,model,parameters):
     fig,ax=plt.subplots()
-    ax.scatter(y_found,y_test)
+    ax.plot(y_found,y_test,'ro')
     lims = [
-        np.min([ax.get_xlim(), ax.get_ylim()])/1000,  # min of both axes
-        np.max([ax.get_xlim(), ax.get_ylim()])/1000,  # max of both axes
+        np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+        np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
     ]
 
     # now plot both limits against eachother
     ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
-    ax.set_aspect('equal')
-    ax.set_xlim(lims)
-    ax.set_ylim(lims)
+    #ax.set_aspect('equal')
+    #ax.set_xlim(lims)
+    #ax.set_ylim(lims)
 
     ax.set_xlabel('y_found')
     ax.set_ylabel('y_test')
@@ -46,6 +46,7 @@ def yf_yt_plot(y_found,y_test,model,parameters):
 def k_fold(X,y,splits,model,parameters):
     kf=KFold(n_splits=splits)
     e_fold=[]
+    RMSEP=[]
     errors=[]
     ers=[]
     median=np.median(y)
@@ -61,9 +62,6 @@ def k_fold(X,y,splits,model,parameters):
             yf=0
             for i,xi in enumerate(t):
                 yf=yf+xi*c[i]
-                print c
-                print i,xi
-                print y_test[j]
             Y_found.append(yf+1*c[i+1])#aggiunto 1*c[i+1] per l'intercetta
 
         #errors=list(map(operator.sub, Y_found, y_test))
@@ -72,14 +70,17 @@ def k_fold(X,y,splits,model,parameters):
             ers.extend(e)
         #ers=np.asarray(errors)
         e_fold.append(np.sqrt(sum([((y_f - y_t))**2 for y_f, y_t in zip(Y_found, y_test)])/len(Y_found)))
+        RMSEP.append(np.sqrt(sum([((y_f - y_t)/y_f)**2 for y_f, y_t in zip(Y_found, y_test)])/len(Y_found)))
         #diviso la mediana
         e_fold_m=[x / math.fabs(median) for x in e_fold]
         yf_yt_plot(np.array(Y_found),np.array(y_test),model,parameters)
 
 
     e_tot=sum(e_fold_m)/splits
-    errors_variance=np.var(ers)
-    return e_tot,errors_variance
+    e_RMSEP=sum(RMSEP)/splits
+    errors_variance=np.var(e_fold_m)
+    RMSEP_variance=np.var(RMSEP)
+    return e_tot,errors_variance,e_RMSEP,RMSEP_variance
 
 def regression(X,Y):
     X=sm.add_constant(X, prepend=False)
