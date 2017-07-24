@@ -4,13 +4,13 @@ import percentageCluster2 as pc
 import math
 import numpy as np
 from ast import literal_eval
-import thread
 
 def x2calculator(x):
     x2=[]
     x2sub=[]
     for xi in x:
         for i,xii in enumerate(xi):
+            x2.append[xii]
             for j,xiii in enumerate(xi):
                 if j>=i: #x1*x2==x2*x1
                     x2sub.append(xii*xiii)
@@ -19,17 +19,19 @@ def x2calculator(x):
     return x2
 def model_selection(model,x,y):
     xs_errors=[]
+    xs_variance=[]
     elements=[]
     for i,element in enumerate(x[0]):
         Xs = [[item[i]] for item in x]
-        k_e,v_e=pc.k_fold(Xs,y,5,model,str(i))
+        k_e,v_e,RMSEP_e,RMSEP_v=pc.k_fold(Xs,y,5,model,str(i))
         xs_errors.append(k_e)
+        xs_variance.append(v_e)
     min_e=min(xs_errors)
     print min_e
     #it take the index of the min error
     elements.append(xs_errors.index(min_e))
 
-    min_sub,min_elements=subtest(x,y,elements,model)
+    min_sub,min_elements=subtest(x,y,elements,model,xs_errors,xs_variance)
     if min_e<min_sub:
         print 'errore minimo=',min_e,'parametri: ',elements
         return min_e,elements
@@ -37,7 +39,7 @@ def model_selection(model,x,y):
         print 'errore minimo=', min_sub, 'parametri: ', min_elements
         return min_sub,min_elements
 
-def subtest(x_tot,y,elements,model):
+def subtest(x_tot,y,elements,model,xs_e,xs_v):
     Xs=[]
     row=[]
     errors=[]
@@ -57,7 +59,7 @@ def subtest(x_tot,y,elements,model):
                 Xs.append(row)
                 row=[]
             parameters=','.join(str(e) for e in sub_elements)
-            k_e, v_e = pc.k_fold(Xs, y, 5, model,parameters)
+            k_e, v_e,RMSEP_e,RMSEP_v = pc.k_fold(Xs, y, 5, model,parameters)
             errors.append(k_e)
             elements_vector.append(sub_elements)
             Xs=[]
@@ -75,10 +77,10 @@ def subtest(x_tot,y,elements,model):
 
 
 
-geo_dir = os.path.dirname('C:\Users\Darius\Desktop\  ')
-file2=open(geo_dir+'\Clipping_Analysis_rivetti_single.csv')
+geo_dir = os.path.dirname('C:\Users\Dario\Desktop\  ')
+file2=open(geo_dir+'\Clipping_Analysis.csv')
 Reader2=pd.read_csv(file2)
-file3=open(geo_dir+'\Clipping_Analysis_rivetti.csv')
+file3=open(geo_dir+'\Clipping_Analysis.csv')
 Reader3=pd.read_csv(file3)
 Reader3.stints=Reader3.stints.apply(literal_eval)
 
@@ -152,7 +154,6 @@ x2_time=x2calculator(X_st_t)
 print len(x2_time[0])
 x2_bayesian=x2calculator(X_st_b)
 print len(x2_bayesian[0])
-
 
 
 
