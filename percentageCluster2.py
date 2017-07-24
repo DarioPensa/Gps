@@ -19,27 +19,27 @@ import operator
 
 
 
-geo_dir = os.path.dirname('C:\Users\Dario\Desktop\  ')
-file=open(geo_dir+'\StintspercentageWithout.csv')
-Reader=pd.read_csv(file)
+geo_dir = os.path.dirname('C:\Users\Darius\Desktop\  ')
+#file=open(geo_dir+'\StintspercentageWithout.csv')
+#Reader=pd.read_csv(file)
 #print Reader.mean()
 def yf_yt_plot(y_found,y_test,model,parameters):
     fig,ax=plt.subplots()
-    ax.scatter(y_found,y_test)
+    ax.plot(y_found,y_test,'ro')
     lims = [
-        np.min([ax.get_xlim(), ax.get_ylim()])/1000,  # min of both axes
-        np.max([ax.get_xlim(), ax.get_ylim()])/1000,  # max of both axes
+        np.min([ax.get_xlim(), ax.get_ylim()]),  # min of both axes
+        np.max([ax.get_xlim(), ax.get_ylim()]),  # max of both axes
     ]
 
     # now plot both limits against eachother
     ax.plot(lims, lims, 'k-', alpha=0.75, zorder=0)
-    ax.set_aspect('equal')
-    ax.set_xlim(lims)
-    ax.set_ylim(lims)
+    #ax.set_aspect('equal')
+    #ax.set_xlim(lims)
+    #ax.set_ylim(lims)
 
     ax.set_xlabel('y_found')
     ax.set_ylabel('y_test')
-    plt.savefig('C:\Users\Dario\Desktop\k_fold'+os.sep+model+os.sep+parameters)
+    plt.savefig('C:\Users\Darius\Desktop\k_fold'+os.sep+model+os.sep+parameters)
     plt.close('all')
 
 

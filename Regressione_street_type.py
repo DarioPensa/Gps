@@ -4,6 +4,7 @@ import percentageCluster2 as pc
 import math
 import numpy as np
 from ast import literal_eval
+import thread
 
 def x2calculator(x):
     x2=[]
@@ -74,7 +75,7 @@ def subtest(x_tot,y,elements,model):
 
 
 
-geo_dir = os.path.dirname('C:\Users\Dario\Desktop\  ')
+geo_dir = os.path.dirname('C:\Users\Darius\Desktop\  ')
 file2=open(geo_dir+'\Clipping_Analysis_rivetti_single.csv')
 Reader2=pd.read_csv(file2)
 file3=open(geo_dir+'\Clipping_Analysis_rivetti.csv')
@@ -151,6 +152,7 @@ x2_time=x2calculator(X_st_t)
 print len(x2_time[0])
 x2_bayesian=x2calculator(X_st_b)
 print len(x2_bayesian[0])
+
 
 
 
