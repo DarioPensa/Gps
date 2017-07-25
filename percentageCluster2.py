@@ -36,10 +36,9 @@ def yf_yt_plot(y_found,y_test,model,parameters):
     #ax.set_aspect('equal')
     #ax.set_xlim(lims)
     #ax.set_ylim(lims)
-
     ax.set_xlabel('y_found')
     ax.set_ylabel('y_test')
-    plt.savefig('C:\Users\Darius\Desktop\k_fold'+os.sep+model+os.sep+parameters)
+    plt.savefig('C:\Users\Dario\Desktop\k_fold'+os.sep+model+os.sep+parameters)
     plt.close('all')
 
 
@@ -74,7 +73,6 @@ def k_fold(X,y,splits,model,parameters):
         #diviso la mediana
         e_fold_m=[x / math.fabs(median) for x in e_fold]
         yf_yt_plot(np.array(Y_found),np.array(y_test),model,parameters)
-
 
     e_tot=sum(e_fold_m)/splits
     e_RMSEP=sum(RMSEP)/splits
