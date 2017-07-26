@@ -10,7 +10,7 @@ def x2calculator(x):
     x2sub=[]
     for xi in x:
         for i,xii in enumerate(xi):
-            x2.append[xii]
+            x2sub.append(xii)
             for j,xiii in enumerate(xi):
                 if j>=i: #x1*x2==x2*x1
                     x2sub.append(xii*xiii)
@@ -20,6 +20,9 @@ def x2calculator(x):
 def model_selection(model,x,y):
     xs_errors=[]
     xs_variance=[]
+    xs_e=[]
+    xs_v=[]
+
     elements=[]
     for i,element in enumerate(x[0]):
         Xs = [[item[i]] for item in x]
@@ -30,8 +33,9 @@ def model_selection(model,x,y):
     print min_e
     #it take the index of the min error
     elements.append(xs_errors.index(min_e))
-
-    min_sub,min_elements=subtest(x,y,elements,model,xs_errors,xs_variance)
+    xs_e.append(xs_errors)
+    xs_v.append(xs_variance)
+    min_sub,min_elements=subtest(x,y,elements,model,xs_e,xs_v)
     if min_e<min_sub:
         print 'errore minimo=',min_e,'parametri: ',elements
         return min_e,elements
@@ -40,9 +44,12 @@ def model_selection(model,x,y):
         return min_sub,min_elements
 
 def subtest(x_tot,y,elements,model,xs_e,xs_v):
+    xs_e=xs_e
+    xs_v=xs_v
     Xs=[]
     row=[]
     errors=[]
+    variances=[]
     elements_vector=[]
     sub_elements=elements[:]
     min_sub=10
@@ -61,14 +68,22 @@ def subtest(x_tot,y,elements,model,xs_e,xs_v):
             parameters=','.join(str(e) for e in sub_elements)
             k_e, v_e,RMSEP_e,RMSEP_v = pc.k_fold(Xs, y, 5, model,parameters)
             errors.append(k_e)
+            variances.append(v_e)
             elements_vector.append(sub_elements)
             Xs=[]
             sub_elements=elements[:]
             min_e=min(errors)
             index=errors.index(min_e)
+    xs_e.append(errors)
+    xs_v.append(variances)
     if len(sub_elements)!=len(x_tot[0])-1:
         print min_e
-        min_sub,min_elements=subtest(x_tot,y,elements_vector[index],model)
+        min_sub,min_elements=subtest(x_tot,y,elements_vector[index],model,xs_e,xs_v)
+    else:
+
+        #error bar plotting
+        pc.error_bar(len(x_tot[0]),xs_e,xs_v)
+
     if min_sub<min_e:
         return min_sub,min_elements
     else:
@@ -77,12 +92,12 @@ def subtest(x_tot,y,elements,model,xs_e,xs_v):
 
 
 
-geo_dir = os.path.dirname('C:\Users\Dario\Desktop\  ')
-file2=open(geo_dir+'\Clipping_Analysis.csv')
+geo_dir = os.path.dirname('C:\Users\Darius\Desktop\  ')
+file2=open(geo_dir+'\Clipping_Analysis_rivetti_single.csv')
 Reader2=pd.read_csv(file2)
-file3=open(geo_dir+'\Clipping_Analysis.csv')
-Reader3=pd.read_csv(file3)
-Reader3.stints=Reader3.stints.apply(literal_eval)
+#file3=open(geo_dir+'\Clipping_Analysis.csv')
+#Reader3=pd.read_csv(file3)
+#Reader3.stints=Reader3.stints.apply(literal_eval)
 
 models=['mileage','time','bayesian']
 Stints=[]
