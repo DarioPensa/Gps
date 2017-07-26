@@ -23,7 +23,7 @@ geo_dir = os.path.dirname('C:\Users\Darius\Desktop\  ')
 #file=open(geo_dir+'\StintspercentageWithout.csv')
 #Reader=pd.read_csv(file)
 #print Reader.mean()
-def error_bar(length,errors,variances):
+def error_bar(length,errors,variances,model):
     x_ax=[]
     y=[]
     y_temp=[]
@@ -35,16 +35,16 @@ def error_bar(length,errors,variances):
                 y_temp.append(e[x-1])
         y.append(y_temp)
         y_temp=[]
-    print x_ax
-    print errors
-    print y[0]
     for a in y:
         xx=x_ax[0:len(a)]
         print len(a)
         plt.plot(xx, a, 'ro')
 
     #plt.errorbar(x_ax,errors , yerr=variances, fmt='o')
-    plt.show()
+    if length>8:
+        plt.savefig('C:\Users\Darius\Desktop\k_fold'+os.sep+model+'quadratic')
+    else:
+        plt.savefig('C:\Users\Darius\Desktop\k_fold' + os.sep + model)
     plt.close()
 
 def yf_yt_plot(y_found,y_test,model,parameters):
@@ -62,7 +62,7 @@ def yf_yt_plot(y_found,y_test,model,parameters):
     #ax.set_ylim(lims)
     ax.set_xlabel('y_found')
     ax.set_ylabel('y_test')
-    plt.savefig('C:\Users\Dario\Desktop\k_fold'+os.sep+model+os.sep+parameters)
+    plt.savefig('C:\Users\Darius\Desktop\k_fold'+os.sep+model+os.sep+parameters)
     plt.close('all')
 
 

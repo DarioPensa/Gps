@@ -44,12 +44,21 @@ def model_selection(model,x,y):
     xs_e.append(xs_errors)
     xs_v.append(xs_variance)
     min_sub,min_elements=subtest(x,y,elements,model,xs_e,xs_v)
+    if len(x[0])>8:
+        model=model+'Quadratic'
     if min_e<min_sub:
+        d = {'min_error_x': [min_e], 'parameters_x_': [elements]}
+        df = pd.DataFrame(data=d, index=[model])
+        df.to_csv(geo_dir + '\model_selection'+model+'.csv')
         print 'errore minimo=',min_e,'parametri: ',elements
         return min_e,elements
     else:
+        d = {'min_error_x': [min_sub], 'parameters_x_': [min_elements]}
+        df = pd.DataFrame(data=d, index=[model])
+        df.to_csv(geo_dir + '\model_selection'+model+'.csv')
         print 'errore minimo=', min_sub, 'parametri: ', min_elements
         return min_sub,min_elements
+
 
 def subtest(x_tot,y,elements,model,xs_e,xs_v):
     xs_e=xs_e
@@ -90,7 +99,7 @@ def subtest(x_tot,y,elements,model,xs_e,xs_v):
     else:
 
         #error bar plotting
-        pc.error_bar(len(x_tot[0]),xs_e,xs_v)
+        pc.error_bar(len(x_tot[0]),xs_e,xs_v,model)
 
     if min_sub<min_e:
         return min_sub,min_elements
