@@ -3,14 +3,21 @@ import os
 import percentageCluster2 as pc
 import math
 import numpy as np
+import thread
+from multiprocessing import Process
 from ast import literal_eval
+def model_s(model,X,x2,Y):
+    print 'entrato'
+    m_e, m_p = model_selection(model, X, Y)
+    m__e_2, m_p_2 = model_selection(model + 'x2', x2, Y)
+    print m_e,m_p,m__e_2,m_p_2
 
 def x2calculator(x):
     x2=[]
     x2sub=[]
     for xi in x:
         for i,xii in enumerate(xi):
-            x2.append[xii]
+            x2sub.append(xii)
             for j,xiii in enumerate(xi):
                 if j>=i: #x1*x2==x2*x1
                     x2sub.append(xii*xiii)
@@ -18,6 +25,7 @@ def x2calculator(x):
         x2sub=[]
     return x2
 def model_selection(model,x,y):
+    print 'entrato anche qui'
     xs_errors=[]
     xs_variance=[]
     elements=[]
@@ -149,14 +157,27 @@ for i,row in enumerate(Reader2['model']):
             Y_time.append(Reader2['alpha'][i])
 
 x2_mileage=x2calculator(X_st_m)
-print len(x2_mileage[0])
 x2_time=x2calculator(X_st_t)
-print len(x2_time[0])
 x2_bayesian=x2calculator(X_st_b)
-print len(x2_bayesian[0])
 
+processes=[]
+try:
+    t1=Process(target=model_s,args=('mileage',X_st_m,x2_mileage,Y_mileage))
+    t1.start()
+    processes.append(t1)
+    t2 = Process(target=model_s,args=('time',X_st_t,x2_time,Y_time))
+    t2.start()
+    processes.append(t2)
+    t3 = Process(target=model_s,args=('bayesian',X_st_b,x2_bayesian,Y_mileage_bayesian))
+    t3.start()
+    processes.append(t3)
+except:
+    print 'Error: unable to start thread'
+# join all threads
+for p in processes:
+    p.join()
 
-
+'''
 for model in models:
     print len(models)
     print model
@@ -174,7 +195,7 @@ for model in models:
 d={'min_error_x':[m_e,t_e,b_e],'parameters_x_':[m_p,t_p,b_p],'min_error_x2':[m__e_2,t_e_2,b_e_2],'parameters_x':[m_p_2,t_p_2,b_p_2]}
 df=pd.DataFrame(data=d, index=['mileage','time','bayesian'])
 df.to_csv(geo_dir+'\model_selection')
-'''
+
 results_st_m=pc.regression(X_st_m,Y_mileage)
 results_st_b=pc.regression(X_st_b,Y_mileage_bayesian)
 results_st_t=pc.regression(X_st_t,Y_time)

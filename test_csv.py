@@ -12,31 +12,36 @@ def x2calculator(x):
             x2sub.append(xii)
             for j,xiii in enumerate(xi):
                 if j>=i: #x1*x2==x2*x1
-                    x2sub.append(xii*xiii)
+                    x2sub.append(float("{0:.4f}".format(xii*xiii)))
         x2.append(x2sub)
         x2sub=[]
     return x2
 
 Tires=[]
 test_stints=[]
+test_alphas_bayesian=[]
+test_alphas_time=[]
+test_alphas_mileage=[]
+test_alphas_bayesian2=[]
+test_alphas_time2=[]
+test_alphas_mileage2=[]
 geo_dir = os.path.dirname('C:\Users\Dario\Desktop\  ')
 file1=open(geo_dir + '\model_selection_crescini.csv')
 Reader1=pd.read_csv(file1)
-Reader1.parameter_x=Reader1.parameters_x.apply(literal_eval)
-Reader1.parameter_x2=Reader1.parameters_x2.apply(literal_eval)
+Reader1.parameters_x=Reader1.parameters_x.apply(literal_eval)
+Reader1.parameters_x2=Reader1.parameters_x2.apply(literal_eval)
 file2 = open(geo_dir + '\Clipping_Analysis.csv')
 Reader2 = pd.read_csv(file2)
 file3 = open(geo_dir + '\Clipping_Analysis.csv')
 Reader3 = pd.read_csv(file3)
 Reader3.stints = Reader3.stints.apply(literal_eval)
 
-x_m_ind=Reader1.parameters_x[0].replace(']', "").replace('[', "")
-x_m2_ind=Reader1.parameters_x2[0].replace(']', "").replace('[', "")
-x_t_ind=Reader1.parameters_x[1].replace(']', "").replace('[', "")
-x_t2_ind=Reader1.parameters_x2[1].replace(']', "").replace('[', "")
-x_b_ind=Reader1.parameters_x[2].replace(']', "").replace('[', "")
-x_b2_ind=Reader1.parameters_x2[2].replace(']', "").replace('[', "")
-
+x_m_ind=[int(xmi) for xmi in Reader1.parameters_x[0]]
+x_m2_ind=[int(xm2i)for xm2i in Reader1.parameters_x2[0]]
+x_t_ind=[int(xti)for xti in Reader1.parameters_x[1]]
+x_t2_ind=[int(xt2i)for xt2i in Reader1.parameters_x2[1]]
+x_b_ind=[int(xbi)for xbi in Reader1.parameters_x[2]]
+x_b2_ind=[int(xb2i)for xb2i in Reader1.parameters_x2[2]]
 Stints = []
 test_stints = []
 mileage_alpha = []
@@ -120,24 +125,44 @@ print test_stints
 #x_t2_ind=Reader1.parameters_x2[1]
 #x_b_ind=Reader1.parameters_x[2]
 #x_b2_ind=Reader1.parameters_x2[2]
-print x_m_ind
+Xm=[]
+Xt=[]
+Xb=[]
+X2m=[]
+X2t=[]
+X2b=[]
 
 for xm in X_st_m:
-    xm=[xm[int(ind)] for ind in x_m_ind]
+    Xm.append([xm[int(ind)] for ind in x_m_ind])
+for x2m in x2_mileage:
+    X2m.append([x2m[int(ind1)] for ind1 in x_m2_ind])
 for xt in X_st_t:
-    xt=[xt[int(ind)] for ind in x_t_ind]
+    Xt.append([xt[int(ind2)] for ind2 in x_t_ind])
+for x2t in x2_time:
+    X2t.append([x2t[int(ind3)] for ind3 in x_t2_ind])
 for xb in X_st_b:
-    xb=[xb[int(ind)] for ind in x_b_ind]
+    Xb.append([xb[int(ind4)] for ind4 in x_b_ind])
+for x2b in x2_bayesian:
+    X2b.append([x2b[int(ind5)] for ind5 in x_b2_ind])
 
 
+clusters_temp=[]
+alpha_temp=[0]*6
 
-results_st_m=pc.regression(X_st_m,Y_mileage)
-results_st_b=pc.regression(X_st_b,Y_mileage_bayesian)
-results_st_t=pc.regression(X_st_t,Y_time)
+results_st_m=pc.regression(Xm,Y_mileage)
+results_st_m2=pc.regression(X2m,Y_mileage)
+results_st_b=pc.regression(Xb,Y_mileage_bayesian)
+results_st_b2=pc.regression(X2b,Y_mileage_bayesian)
+results_st_t=pc.regression(Xt,Y_time)
+results_st_t2=pc.regression(X2t,Y_time)
+
+
 a_st_m=results_st_m.params
+a_st_m2=results_st_m2.params
 a_st_b=results_st_b.params
+a_st_b2=results_st_b2.params
 a_st_t=results_st_t.params
-
+a_st_t2=results_st_t2.params
 
 #print results_st_m.cov_params()
 latest_stint=-1
@@ -148,29 +173,61 @@ for ts in test_stints:
             latest_stint = ts
             clusters_temp = [float(Reader2['%of_service'][i]) / 100,
                              float(Reader2['%residential'][i]) / 100,
-                             float(Reader2['%unclassified'][i]) / 100,                                 float(Reader2['%tertiary'][i]) / 100,
+                             float(Reader2['%unclassified'][i]) / 100,
+                             float(Reader2['%tertiary'][i]) / 100,
                              float(Reader2['%secondary'][i]) / 100,
                                  float(Reader2['%primary'][i]) / 100,
                                  float(Reader2['%trunk'][i]) / 100,
                                  float(Reader2['%motorway'][i]) / 100,
                                  # float(Reader2['%others'][i])/100
                                  ]
-            for j in range(8):
-                alpha_temp[0] = alpha_temp[0] + clusters_temp[j] * a_st_m[j]
-                alpha_temp[1] = alpha_temp[1] + clusters_temp[j] * a_st_t[j]
-                alpha_temp[2] = alpha_temp[2] + clusters_temp[j] * a_st_b[j]
-            alpha_temp[0] = alpha_temp[0] + a_st_m[j + 1]
-            alpha_temp[1] = alpha_temp[1] + a_st_t[j + 1]
-            alpha_temp[2] = alpha_temp[2] + a_st_b[j + 1]
+            clusters_temp2=x2calculator([clusters_temp])
+            Xtest_m=[clusters_temp[i]for i in x_m_ind]
+            X2test_m=[clusters_temp2[0][i] for i in x_m2_ind]
+            Xtest_t=[clusters_temp[i]for i in x_t_ind]
+            X2test_t=[clusters_temp2[0][i]for i in x_t2_ind ]
+            Xtest_b=[clusters_temp[i]for i in x_b_ind]
+            X2test_b=[clusters_temp2[0][i]for i in x_b2_ind]
+
+            for i,j in enumerate(Xtest_m):
+                alpha_temp[0]=alpha_temp[0]+j*a_st_m[i]
+            alpha_temp[0]=alpha_temp[0]+a_st_m[i+1]
+            for i,j in enumerate(X2test_m):
+                alpha_temp[1] = alpha_temp[1] + j * a_st_m2[i]
+            alpha_temp[1] = alpha_temp[1] + a_st_m2[i + 1]
+
+            for i,j in enumerate(Xtest_t):
+                alpha_temp[2]=alpha_temp[2]+j*a_st_t[i]
+            alpha_temp[2]=alpha_temp[2]+a_st_t[i+1]
+            for i,j in enumerate(X2test_t):
+                alpha_temp[3] = alpha_temp[3] + j * a_st_t2[i]
+            alpha_temp[3] = alpha_temp[3] + a_st_t2[i + 1]
+
+            for i,j in enumerate(Xtest_b):
+                alpha_temp[4]=alpha_temp[4]+j*a_st_b[i]
+            alpha_temp[4]=alpha_temp[4]+a_st_b[i+1]
+            for i,j in enumerate(X2test_b):
+                alpha_temp[5] = alpha_temp[5] + j * a_st_b2[i]
+            alpha_temp[5] = alpha_temp[5] + a_st_b2[i + 1]
+
+
             test_alphas_mileage.append(alpha_temp[0])
-            test_alphas_time.append(alpha_temp[1])
-            test_alphas_bayesian.append(alpha_temp[2])
+            test_alphas_mileage2.append(alpha_temp[1])
+            test_alphas_time.append(alpha_temp[2])
+            test_alphas_time2.append(alpha_temp[3])
+            test_alphas_bayesian.append(alpha_temp[4])
+            test_alphas_bayesian2.append(alpha_temp[5])
+
     clusters_temp = []
-    alpha_temp = [0] * 3
+    alpha_temp = [0] * 6
 
 # print len(test_stints),len([x[0] for x in Tires]),len(test_alphas_mileage),len(test_alphas_bayesian),len(test_alphas_time)
 
 test = {'Stint': test_stints,
-        'MileageAlpha': test_alphas_mileage, 'TimeAlpha': test_alphas_time, 'BayesianAlpha': test_alphas_bayesian}
+        'MileageAlpha': test_alphas_mileage,'MileageAlpha2': test_alphas_mileage2,'TimeAlpha': test_alphas_time,
+        'TimeAlpha2': test_alphas_time2,'BayesianAlpha':test_alphas_bayesian,'BayesianAlpha2':test_alphas_bayesian2}
+
+
+
 test_df = pd.DataFrame(data=test)
-test_df.to_csv(geo_dir + '\TestRivettiAlphas.csv')
+test_df.to_csv(geo_dir + '\Test_crescini\Testcrescini.csv')
